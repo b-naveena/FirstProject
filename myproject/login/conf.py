@@ -1,5 +1,5 @@
 '''
-    Database detaiks
+    Database details
 '''
 
 DB_HOST = 'localhost'

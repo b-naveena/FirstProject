@@ -11,6 +11,7 @@ from rest_framework import status
 class Register(APIView):
     def post(self ,requests ,Format=None):
         req_body = json.loads(requests.body)
+        print json.loads(requests.body).get("name");
         val = services.register(req_body)
         return Response(val)
 
@@ -38,5 +39,6 @@ class Login(APIView):
         a=services.login(req_str)
         return Response(a)
 
-
-
+class DownloadLog(APIView):
+    def get(self,request,format=None):
+        return services.downloadLog()

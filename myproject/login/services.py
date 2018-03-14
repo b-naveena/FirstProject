@@ -39,7 +39,7 @@ def login(req_str):
     serialize = listUserSerializer(check,many=True)
     if check:
         val ="Login successful"
-        logger.error("Login success")
+        logger.info("Login success")
     else:
         val ="failed"
         logger.error("Login Failure...wrong username/password")

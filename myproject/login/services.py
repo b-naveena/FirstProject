@@ -1,36 +1,42 @@
-import os
-import mimetypes
 import logging
-from wsgiref.util import FileWrapper
-from django.http import HttpResponse
-from myproject.settings import MEDIA_ROOT
 from login.models import Credentials
 from login.serializer import listUserSerializer
 logger = logging.getLogger(__name__)
 
 def register(req_body):
+    name = req_body.get("name")
+    email = req_body.get("email")
+    password = req_body.get("password")
+    isadmin = ( name =="appadmin")
     log_obj = Credentials()
-    log_obj.name,log_obj.email,log_obj.password,log_obj.isadmin = req_body['name'],req_body['email'],req_body['password'],req_body['isadmin']
+    log_obj.name = name
+    log_obj.email = email
+    log_obj.password = password
+    log_obj.isadmin = isadmin
     log_obj.save()
-    logger.info("New user %s is successfully created" %(req_body['name']))
+    logger.info("New user %s is successfully created" %(name))
     status = "Row is successfully created"
     return status
     
 def update(req_body):
-    if Credentials.objects.filter(name=req_body.get('name'),password=req_body.get('password')):
+    name = req_body.get('name')
+    mypass = req_body.get('password')
+    if Credentials.objects.filter(name=name,password=mypass):
         print "Login Success"
         logger.error("Login Success..")
     else:
         print "Failure"
         logger.error("Login Failure...wrong username/password")
-    log_obj = Credentials.objects.get(name=req_body.get('name'))
-    log_obj.password = req_body.get('newpassword')
+    new_pass = req_body.get('newpassword')
+    log_obj = Credentials.objects.get(name=name)
+    log_obj.password =new_pass
     log_obj.save()
-    logger.error("Password reset for user %s" %(req_body['name']))
+    logger.error("Password reset for user %s" %(name))
 
 
 def deleteUser(req_body):
-    Credentials.objects.get(id=req_body.get('id')).delete()
+    id = req_body.get('id')
+    Credentials.objects.get(id=id).delete()
     logger.info("User successfully Deleted")    
 
 
@@ -39,8 +45,10 @@ def listAllUsers():
     serialize = listUserSerializer(lst,many=True)
     return serialize.data
 
-def login(req_body):
-    check = Credentials.objects.filter(name=req_body.get('name'),password=req_body.get('password'))
+def login(req_str):
+    name = req_str.get("name")
+    password = req_str.get("password")
+    check = Credentials.objects.filter(name=name, password=password)
     serialize = listUserSerializer(check,many=True)
     if check:
         val ="Login successful"
@@ -49,15 +57,3 @@ def login(req_body):
         val ="failed"
         logger.error("Login Failure...wrong username/password")
     return serialize.data
-
-def downloadLog():
-    file_name = "log_file.log"
-    filename = os.path.join(MEDIA_ROOT,file_name)
-    wrapper = FileWrapper(file(filename))
-    response = HttpResponse(wrapper)
-    file_size = os.path.getsize(filename)
-    content_type = mimetypes.guess_type(filename)[0]
-    response['Content-Type'] = content_type
-    response['Content-Length'] = str(file_size)
-    response['Content-Disposition'] = "attachment ; filename=%s"%(file_name)
-    return response
